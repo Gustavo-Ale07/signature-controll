@@ -1,0 +1,68 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  provider      String?   @default("local")
+  providerId    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  items         Item[]
+  sessions      Session[]
+
+  @@index([email])
+  @@index([provider, providerId])
+}
+
+model Session {
+  sid    String   @id
+  sess   Json
+  expire DateTime
+  userId String?
+  user   User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expire])
+  @@index([userId])
+}
+
+model Item {
+  id               String   @id @default(uuid())
+  userId           String
+  type             ItemType
+  name             String
+  email            String?
+  secretCiphertext String?
+  secretIv         String?
+  secretAuthTag    String?
+  value            Float?
+  billingDay       Int?
+  duration         Duration?
+  notes            String?
+  iconPath         String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+}
+
+enum ItemType {
+  SUBSCRIPTION
+  ACCOUNT
+}
+
+enum Duration {
+  MONTHLY
+  SEMIANNUAL
+  ANNUAL
+}
