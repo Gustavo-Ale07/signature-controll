@@ -8,6 +8,7 @@ import { validate } from '../middleware/validation';
 import { createItemSchema, updateItemSchema } from '../validators/schemas';
 import { encryptSecret, decryptSecret } from '../utils/crypto';
 import { config } from '../config';
+import { Prisma } from '@prisma/client';
 
 const router = Router();
 
@@ -79,6 +80,75 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     });
     
     res.json(items);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get dashboard stats
+router.get('/stats/dashboard', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = req.user as any;
+    
+    type DashboardItem = Prisma.ItemGetPayload<{
+      select: {
+        id: true;
+        name: true;
+        value: true;
+        billingDay: true;
+        duration: true;
+      };
+    }>;
+
+    const items: DashboardItem[] = await prisma.item.findMany({
+      where: {
+        userId: user.id,
+        type: 'SUBSCRIPTION',
+      },
+      select: {
+        id: true,
+        name: true,
+        value: true,
+        billingDay: true,
+        duration: true,
+      },
+    });
+    
+    // Calculate monthly total
+    let monthlyTotal = 0;
+    const upcomingBillings: DashboardItem[] = [];
+    
+    items.forEach((item) => {
+      if (item.value && item.duration) {
+        let monthlyValue = item.value;
+        
+        if (item.duration === 'SEMIANNUAL') {
+          monthlyValue = item.value / 6;
+        } else if (item.duration === 'ANNUAL') {
+          monthlyValue = item.value / 12;
+        }
+        
+        monthlyTotal += monthlyValue;
+        
+        if (item.billingDay) {
+          upcomingBillings.push({
+            id: item.id,
+            name: item.name,
+            value: item.value,
+            billingDay: item.billingDay,
+            duration: item.duration,
+          });
+        }
+      }
+    });
+    
+    // Sort by billing day
+    upcomingBillings.sort((a, b) => a.billingDay - b.billingDay);
+    
+    res.json({
+      monthlyTotal: Math.round(monthlyTotal * 100) / 100,
+      upcomingBillings: upcomingBillings.slice(0, 5), // Next 5
+    });
   } catch (error) {
     next(error);
   }
@@ -274,65 +344,6 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
     await prisma.item.delete({ where: { id } });
     
     res.json({ message: 'Item deleted successfully' });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get dashboard stats
-router.get('/stats/dashboard', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user as any;
-    
-    const items = await prisma.item.findMany({
-      where: {
-        userId: user.id,
-        type: 'SUBSCRIPTION',
-      },
-      select: {
-        id: true,
-        name: true,
-        value: true,
-        billingDay: true,
-        duration: true,
-      },
-    });
-    
-    // Calculate monthly total
-    let monthlyTotal = 0;
-    const upcomingBillings: any[] = [];
-    
-    items.forEach((item) => {
-      if (item.value && item.duration) {
-        let monthlyValue = item.value;
-        
-        if (item.duration === 'SEMIANNUAL') {
-          monthlyValue = item.value / 6;
-        } else if (item.duration === 'ANNUAL') {
-          monthlyValue = item.value / 12;
-        }
-        
-        monthlyTotal += monthlyValue;
-        
-        if (item.billingDay) {
-          upcomingBillings.push({
-            id: item.id,
-            name: item.name,
-            value: item.value,
-            billingDay: item.billingDay,
-            duration: item.duration,
-          });
-        }
-      }
-    });
-    
-    // Sort by billing day
-    upcomingBillings.sort((a, b) => a.billingDay - b.billingDay);
-    
-    res.json({
-      monthlyTotal: Math.round(monthlyTotal * 100) / 100,
-      upcomingBillings: upcomingBillings.slice(0, 5), // Next 5
-    });
   } catch (error) {
     next(error);
   }

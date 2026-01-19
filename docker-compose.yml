@@ -49,7 +49,6 @@ services:
       - "3001:3001"
     volumes:
       - ./apps/api/uploads:/app/uploads
-
   web:
     build:
       context: .
