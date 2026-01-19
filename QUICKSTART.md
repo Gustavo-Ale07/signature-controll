@@ -20,6 +20,9 @@ copy apps\api\.env.example apps\api\.env
 copy apps\web\.env.example apps\web\.env
 
 # Edite apps\api\.env e cole os secrets gerados acima
+# e configure CLERK_SECRET_KEY/CLERK_PUBLISHABLE_KEY.
+
+# Edite apps\web\.env e configure VITE_CLERK_PUBLISHABLE_KEY.
 
 # 5. Subir banco de dados
 docker-compose up -d postgres

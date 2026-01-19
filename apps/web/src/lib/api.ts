@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosHeaders } from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
@@ -19,10 +19,15 @@ async function getClerkToken() {
 api.interceptors.request.use(async (config) => {
   const token = await getClerkToken();
   if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
+    const headers = config.headers;
+    if (headers && typeof (headers as AxiosHeaders).set === 'function') {
+      (headers as AxiosHeaders).set('Authorization', `Bearer ${token}`);
+    } else {
+      config.headers = {
+        ...(headers ?? {}),
+        Authorization: `Bearer ${token}`,
+      };
+    }
   }
   return config;
 });

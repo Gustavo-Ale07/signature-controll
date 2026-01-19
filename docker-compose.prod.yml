@@ -21,8 +21,8 @@ services:
 
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/api/Dockerfile
     container_name: smilovault-api-prod
     restart: always
     depends_on:
@@ -41,6 +41,10 @@ services:
       FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
       FACEBOOK_CALLBACK_URL: https://${DOMAIN}/api/auth/facebook/callback
       FRONTEND_URL: https://${DOMAIN}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
+      CLERK_SIGN_IN_URL: /login
+      CLERK_SIGN_UP_URL: /register
     volumes:
       - api_uploads:/app/uploads
     networks:
@@ -50,10 +54,11 @@ services:
 
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/web/Dockerfile
       args:
         VITE_API_URL: https://${DOMAIN}
+        VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
     container_name: smilovault-web-prod
     restart: always
     depends_on:

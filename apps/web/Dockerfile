@@ -2,30 +2,31 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY pnpm-lock.yaml* ./
+RUN corepack enable
 
-# Install pnpm
-RUN npm install -g pnpm
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json apps/web/package.json
+COPY apps/web/tsconfig.json apps/web/tsconfig.json
+COPY apps/web/tsconfig.node.json apps/web/tsconfig.node.json
+COPY apps/web/vite.config.ts apps/web/vite.config.ts
+COPY apps/web/postcss.config.cjs apps/web/postcss.config.cjs
+COPY apps/web/tailwind.config.js apps/web/tailwind.config.js
+COPY apps/web/index.html apps/web/index.html
+COPY apps/web/src apps/web/src
+COPY apps/web/nginx.conf apps/web/nginx.conf
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+ARG VITE_API_URL
+ARG VITE_CLERK_PUBLISHABLE_KEY
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY
 
-# Copy source code
-COPY . .
+RUN pnpm install --frozen-lockfile --filter ./apps/web...
+RUN pnpm --filter ./apps/web... build
 
-# Build
-RUN pnpm build
-
-# Production stage
 FROM nginx:alpine
 
-# Copy built files to nginx
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

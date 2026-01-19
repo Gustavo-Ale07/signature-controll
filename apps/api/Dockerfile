@@ -2,48 +2,37 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY pnpm-lock.yaml* ./
+RUN corepack enable
 
-# Install pnpm
-RUN npm install -g pnpm
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/api/tsconfig.json apps/api/tsconfig.json
+COPY apps/api/prisma apps/api/prisma
+COPY apps/api/src apps/api/src
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --filter ./apps/api...
+RUN pnpm --filter ./apps/api... db:generate
+RUN pnpm --filter ./apps/api... build
 
-# Copy source code
-COPY . .
-
-# Generate Prisma Client
-RUN pnpm db:generate
-
-# Build
-RUN pnpm build
-
-# Production stage
-FROM node:20-alpine
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+RUN corepack enable
 
-# Copy package files
-COPY package*.json ./
-COPY pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json apps/api/package.json
 
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --frozen-lockfile --filter ./apps/api...
 
-# Copy built files and prisma
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY prisma ./prisma
+COPY --from=builder /app/apps/api/dist /app/apps/api/dist
+COPY --from=builder /app/apps/api/prisma /app/apps/api/prisma
+COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
 
-# Create uploads directory
+WORKDIR /app/apps/api
+
 RUN mkdir -p uploads
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "pnpm db:migrate && node dist/index.js"]
+CMD ["node", "dist/index.js"]

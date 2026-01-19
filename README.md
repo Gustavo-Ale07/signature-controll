@@ -140,6 +140,10 @@ FACEBOOK_APP_ID=your-facebook-app-id
 FACEBOOK_APP_SECRET=your-facebook-app-secret
 FACEBOOK_CALLBACK_URL=http://localhost:3001/api/auth/facebook/callback
 FRONTEND_URL=http://localhost:5173
+CLERK_SECRET_KEY=sk_test_your_key_here
+CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+CLERK_SIGN_IN_URL=/login
+CLERK_SIGN_UP_URL=/register
 ```
 
 **IMPORTANTE**: Substitua `ENCRYPTION_KEY` pela chave gerada no Passo 2.
@@ -158,6 +162,7 @@ Edite `apps/web/.env`:
 
 ```env
 VITE_API_URL=http://localhost:3001
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
 ```
 
 ### Passo 4: Subir o Banco de Dados
