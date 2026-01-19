@@ -51,7 +51,7 @@ smilovault/
 │       │   ├── pages/
 │       │   │   ├── DashboardPage.tsx          # Dashboard principal
 │       │   │   ├── ItemDetailPage.tsx         # Detalhes do item
-│       │   │   ├── ItemsPage.tsx              # Lista de itens
+│       │   │   ├── ItemsPage.jsx              # Lista de itens
 │       │   │   ├── LoginPage.tsx              # Login
 │       │   │   ├── NewItemPage.tsx            # Criar item
 │       │   │   ├── RegisterPage.tsx           # Cadastro

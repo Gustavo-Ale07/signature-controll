@@ -10,7 +10,7 @@ import { encryptSecret, decryptSecret } from '../utils/crypto';
 import { config } from '../config';
 import { Prisma } from '@prisma/client';
 
-const router = Router();
+const router: Router = Router();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -116,7 +116,15 @@ router.get('/stats/dashboard', async (req: Request, res: Response, next: NextFun
     
     // Calculate monthly total
     let monthlyTotal = 0;
-    const upcomingBillings: DashboardItem[] = [];
+    type UpcomingBilling = {
+      id: string;
+      name: string;
+      value: number | null;
+      billingDay: number;
+      duration: DashboardItem['duration'];
+    };
+
+    const upcomingBillings: UpcomingBilling[] = [];
     
     items.forEach((item) => {
       if (item.value && item.duration) {
@@ -130,7 +138,7 @@ router.get('/stats/dashboard', async (req: Request, res: Response, next: NextFun
         
         monthlyTotal += monthlyValue;
         
-        if (item.billingDay) {
+        if (item.billingDay !== null) {
           upcomingBillings.push({
             id: item.id,
             name: item.name,

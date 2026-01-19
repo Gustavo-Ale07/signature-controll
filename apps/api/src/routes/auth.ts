@@ -6,7 +6,7 @@ import { validate } from '../middleware/validation';
 import { registerSchema, loginSchema } from '../validators/schemas';
 import { config } from '../config';
 
-const router = Router();
+const router: Router = Router();
 
 // Register
 router.post('/register', validate(registerSchema), async (req: Request, res: Response, next: NextFunction) => {

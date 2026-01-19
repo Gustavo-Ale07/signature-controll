@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import ItemCard from '@/components/ItemCard';
 import { itemService } from '@/services/items';
-import { Item } from '@/types';
 import { Plus, Search } from 'lucide-react';
 
 export default function ItemsPage() {
   const navigate = useNavigate();
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [search, setSearch] = useState('');
 
   useEffect(() => {

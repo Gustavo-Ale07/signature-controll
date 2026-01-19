@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Express } from 'express';
 import session from 'express-session';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -15,7 +15,7 @@ import { errorHandler, notFound } from './middleware/error';
 import path from 'path';
 import fs from 'fs';
 
-const app = express();
+const app: Express = express();
 const isTestEnv = config.nodeEnv === 'test' || process.env.JEST_WORKER_ID !== undefined;
 
 // Rate limiting
@@ -68,13 +68,15 @@ if (config.nodeEnv === 'development') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Clerk auth middleware
-app.use(
-  clerkMiddleware({
-    secretKey: config.clerk.secretKey || undefined,
-    publishableKey: config.clerk.publishableKey || undefined,
-  })
-);
+// Clerk auth middleware (only when keys are configured)
+if (config.clerk.secretKey && config.clerk.publishableKey) {
+  app.use(
+    clerkMiddleware({
+      secretKey: config.clerk.secretKey,
+      publishableKey: config.clerk.publishableKey,
+    })
+  );
+}
 
 // Session configuration with PostgreSQL store
 const PgSession = connectPgSimple(session);
