@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import ItemCard from '@/components/ItemCard';
 import { itemService } from '@/services/items';
-import { Item, ItemType } from '@/types';
+import { Item } from '@/types';
 import { Plus, Search } from 'lucide-react';
 
 export default function ItemsPage() {
